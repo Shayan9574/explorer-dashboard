@@ -74,7 +74,7 @@ def arc_elasticity(p0, v0, p1, v1):
 
 
 @st.cache_data
-def program_metrics(quarterly: pd.DataFrame):
+def program_metrics(quarterly: pd.DataFrame, baseline_e: float = -4.0):
     q = quarterly.set_index("quarter")
     ap0, av0 = q.loc["2025Q1", "atp_Explorer"], q.loc["2025Q1", "vol_Explorer"]
     ap1, av1 = q.loc["2025Q2", "atp_Explorer"], q.loc["2025Q2", "vol_Explorer"]
@@ -83,7 +83,6 @@ def program_metrics(quarterly: pd.DataFrame):
     eA, dpA, dvA = arc_elasticity(ap0, av0, ap1, av1)
     eB, dpB, dvB = arc_elasticity(ap1, av1, bp1, bv1)
 
-    baseline_e = -4.0
     price_lift_A = baseline_e * (ap1 / ap0 - 1) * 100
     campaign_lift_A = (av1 / av0 - 1) * 100 - price_lift_A
     price_lift_B = baseline_e * (bp1 / ap1 - 1) * 100

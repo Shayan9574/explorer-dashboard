@@ -1,18 +1,25 @@
-"""AI analysis: curated insights always available; live Claude generation when an
-ANTHROPIC_API_KEY is present in Streamlit secrets."""
+"""AI analysis: curated insights always shown; live Claude generation when a key is
+provided in the sidebar or in Streamlit secrets."""
 import streamlit as st
 
 
-def live_available() -> bool:
+def _key() -> str:
+    k = st.session_state.get("claude_api_key", "")
+    if k:
+        return k
     try:
-        return bool(st.secrets.get("ANTHROPIC_API_KEY", ""))
+        return st.secrets.get("ANTHROPIC_API_KEY", "")
     except Exception:
-        return False
+        return ""
+
+
+def live_available() -> bool:
+    return bool(_key())
 
 
 def live_analysis(context: str, question: str) -> str:
     import anthropic
-    client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+    client = anthropic.Anthropic(api_key=_key())
     msg = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=700,
@@ -30,12 +37,12 @@ def ai_section(key: str, curated: str, context: str, question: str):
     st.markdown("#### AI analysis")
     st.markdown(curated)
     if live_available():
-        if st.button("Generate live AI analysis", key=f"btn_{key}"):
+        if st.button("Generate live AI analysis with Claude", key=f"btn_{key}"):
             with st.spinner("Claude is analyzing ..."):
                 try:
                     st.info(live_analysis(context, question))
                 except Exception as e:
                     st.warning(f"Live analysis unavailable: {e}")
     else:
-        st.caption("Add ANTHROPIC_API_KEY to Streamlit secrets to enable live, "
-                   "on-demand AI analysis in addition to the curated insights above.")
+        st.caption("Enter a Claude API key in the sidebar to generate live, on-demand "
+                   "AI analysis for this tab.")
